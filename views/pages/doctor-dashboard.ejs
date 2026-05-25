@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head', { title: 'Doctor Dashboard', extraCss: ['/css/admin-dashboard.css'] }) %>
+</head>
+<body>
+    <%- include('../partials/navbar', { role: 'doctor' }) %>
+
+    <div class="app-wrap">
+        <div class="view admin-view">
+
+            <!-- ── Header ── -->
+            <div class="view-header">
+                <h3>Welcome, <%= doctor.name %></h3>
+            </div>
+
+            <!-- ── SECTION 1: Current Slot + Update Form ── -->
+            <div class="card">
+                <div class="section-header">
+                    <h4>📅 Your Availability</h4>
+                </div>
+
+                <p><strong>Current Slot:</strong> <%= doctor.timeSlot || '—' %></p>
+                <p style="margin-top:4px;"><strong>Max Capacity:</strong> <%= doctor.maxCapacity %></p>
+
+                <hr style="border:0; border-top:1px solid var(--border); margin:18px 0;">
+                <h4 style="margin-bottom:12px;">Update Time Slot</h4>
+
+                <div class="input-group availability-inputs">
+                    <div class="time-range">
+                        <input type="time" id="slot-start" required title="Start Time">
+                        <span>to</span>
+                        <input type="time" id="slot-end" required title="End Time">
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:10px; margin-top:4px;">
+                    <button class="btn-form" onclick="updateSlots()" style="flex:1;">💾 Update Slot</button>
+                    <button onclick="clearSlot()" style="
+                        padding: 12px 20px;
+                        background: rgba(232,64,64,0.08);
+                        color: var(--red);
+                        border: 1px solid rgba(232,64,64,0.35);
+                        border-radius: 12px;
+                        font-size: 0.92rem;
+                        font-weight: 600;
+                        cursor: pointer;
+                        font-family: inherit;
+                        white-space: nowrap;
+                        transition: background 0.2s;
+                    ">🗑 Cancel All</button>
+                </div>
+
+                <p style="margin-top:10px; font-size:0.83rem; color:var(--subtle);">
+                    Updating recalculates capacity — patients beyond the new limit are removed and notified via Email.
+                    <strong>"Cancel All"</strong> removes all bookings and clears your slot.
+                </p>
+            </div>
+
+            <!-- ── SECTION 2: Current Queue ── -->
+            <div class="card">
+                <div class="section-header">
+                    <h4>📋 Current Queue (<%= bookings.length %> / <%= doctor.maxCapacity %>)</h4>
+                </div>
+
+                <table class="dashboard-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Patient Name</th>
+                            <th>Type</th>
+                            <th>Medical History</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (bookings.length === 0) { %>
+                            <tr>
+                                <td colspan="4" style="text-align:center; color:var(--subtle); padding:24px;">
+                                    No patients in queue.
+                                </td>
+                            </tr>
+                        <% } else { %>
+                            <% bookings.forEach(function(b, index) { %>
+                                <tr>
+                                    <td><%= index + 1 %></td>
+                                    <td><%= b.patientName %></td>
+                                    <td><%= b.appointmentType %></td>
+                                    <td>
+                                        <% let hasHistory = (b.medicalHistory && b.medicalHistory.length > 0); %>
+                                        
+                                        <% if (!hasHistory) { %>
+                                            <span style="color:var(--subtle);">No history</span>
+                                        <% } else { %>
+                                            <ul style="padding-left:16px; margin:0; font-size:0.85em; color:var(--muted); list-style-type: disc;">
+                                                <% b.medicalHistory.forEach(function(item) { %>
+                                                    <% if (item.includes('|')) { 
+                                                        const parts = item.split('|');
+                                                        const orig = parts[0];
+                                                        const stored = parts[1] || parts[0];
+                                                    %>
+                                                        <li>
+                                                            <a href="/uploads/<%= stored %>" target="_blank" style="color: var(--blue); text-decoration: underline; word-break: break-all;"><%= orig %></a>
+                                                        </li>
+                                                    <% } else { %>
+                                                        <li><%= item %></li>
+                                                    <% } %>
+                                                <% }); %>
+                                            </ul>
+                                        <% } %>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Format start/end time inputs into the timeSlot string the server expects.
+        // Output: "1:00 PM - 5:00 PM"  (no date)
+        function formatTimeSlot(startStr, endStr) {
+            function to12h(t) {
+                var parts = t.split(':');
+                var h     = parseInt(parts[0], 10);
+                var m     = parts[1];
+                var ampm  = h >= 12 ? 'PM' : 'AM';
+                h = h % 12 || 12;
+                return h + ':' + m + ' ' + ampm;
+            }
+            return to12h(startStr) + ' - ' + to12h(endStr);
+        }
+
+        async function updateSlots() {
+            var startVal = document.getElementById('slot-start').value;
+            var endVal   = document.getElementById('slot-end').value;
+
+            if (!startVal || !endVal) {
+                alert('Please fill in both start time and end time.');
+                return;
+            }
+            if (startVal >= endVal) {
+                alert('End time must be later than start time.');
+                return;
+            }
+
+            var timeSlot = formatTimeSlot(startVal, endVal);
+
+            try {
+                var res  = await fetch('/doctor/update-slots', {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify({ timeSlot })
+                });
+                var data = await res.json();
+                if (data.success) {
+                    alert('Slot updated. New capacity: ' + data.newCapacity + '. All patients have been notified via Email.');
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (err) {
+                alert('Request failed: ' + err.message);
+            }
+        }
+
+        async function clearSlot() {
+            if (!confirm('This will cancel ALL appointments and remove your time slot.\nAll patients will be notified via Email.\n\nContinue?')) return;
+
+            try {
+                var res  = await fetch('/doctor/clear-slot', {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                var data = await res.json();
+                if (data.success) {
+                    alert('All appointments cancelled. Patients have been notified via Email.');
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (err) {
+                alert('Request failed: ' + err.message);
+            }
+        }
+    </script>
+</body>
+</html>
