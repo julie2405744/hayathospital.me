@@ -11,8 +11,8 @@ const app = express();
 
 
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/hayat')
-    .then(() => console.log('✅ MongoDB connected'))
-    .catch(err => console.error('❌ MongoDB error:', err.message));
+    .then(() => console.log('MongoDB connected'))
+    .catch(err => console.error('MongoDB error:', err.message));
 
 
 app.set('view engine', 'ejs');
@@ -59,32 +59,10 @@ app.use((err, req, res, next) => {
     });
 });
 
-
-const http = require('http');
-const https = require('https');
-const fs = require('fs');
-
 const PORT = process.env.PORT || 3000;
-const HTTPS_PORT = process.env.HTTPS_PORT || 3443;
 
-const httpServer = http.createServer(app);
-httpServer.listen(PORT, () => {
-    console.log(`🚀 HTTP Server running at http://localhost:${PORT}`);
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });
 
-
-try {
-    const privateKey = fs.readFileSync(path.join(__dirname, 'ssl', 'key.pem'), 'utf8');
-    const certificate = fs.readFileSync(path.join(__dirname, 'ssl', 'cert.pem'), 'utf8');
-    const credentials = { key: privateKey, cert: certificate };
-
-    const httpsServer = https.createServer(credentials, app);
-    httpsServer.listen(HTTPS_PORT, () => {
-        console.log(`🔒 HTTPS Server running at https://localhost:${HTTPS_PORT}`);
-    });
-} catch (err) {
-    console.log('⚠️ Could not start HTTPS server: ', err.message);
-}
-
 module.exports = app;
-
