@@ -83,3 +83,20 @@ exports.getProfile = async (req, res) => {
     }
 };
 
+exports.updatePhone = async (req, res) => {
+    try {
+        const { phone } = req.body;
+        const cleaned   = (phone || '').replace(/\s+/g, '').trim();
+
+        // ── Backend Validation ──
+        if (!cleaned)
+            return res.redirect('/client/profile?error=Phone+number+is+required.');
+        if (!/^\+?[0-9]{7,15}$/.test(cleaned))
+            return res.redirect('/client/profile?error=Invalid+phone+format.+Use+7-15+digits,+optionally+starting+with+%2B.');
+
+        await User.findByIdAndUpdate(req.session.user.id, { phone: cleaned });
+        res.redirect('/client/profile?phone=saved');
+    } catch (err) {
+        res.redirect('/client/profile?error=' + encodeURIComponent(err.message));
+    }
+};
