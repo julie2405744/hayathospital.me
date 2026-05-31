@@ -100,3 +100,34 @@ exports.updatePhone = async (req, res) => {
         res.redirect('/client/profile?error=' + encodeURIComponent(err.message));
     }
 };
+
+exports.uploadReport = async (req, res) => {
+    try {
+        if (!req.file) return res.redirect('/client/profile?error=No+file+was+uploaded.');
+
+        const allowedMime = ['application/pdf', 'image/png', 'image/jpeg', 'text/plain',
+                             'application/msword',
+                             'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+        const allowedExt  = ['.pdf', '.png', '.jpg', '.jpeg', '.txt', '.doc', '.docx'];
+        const ext         = require('path').extname(req.file.originalname).toLowerCase();
+
+        if (!allowedMime.includes(req.file.mimetype) && !allowedExt.includes(ext))
+            return res.redirect('/client/profile?error=Invalid+file+type.+Only+PDF,+PNG,+JPG,+TXT,+and+DOC+files+are+allowed.');
+
+        const maxSize = 5 * 1024 * 1024; // 5 MB
+        if (req.file.size > maxSize)
+            return res.redirect('/client/profile?error=File+size+must+not+exceed+5+MB.');
+
+        const userId       = req.session.user.id;
+        const filename     = req.file.filename;
+        const originalName = req.file.originalname;
+
+        await User.findByIdAndUpdate(userId, {
+            $push: { medicalHistory: `${originalName}|${filename}` }
+        });
+
+        res.redirect('/client/profile?success=uploaded');
+    } catch (err) {
+        res.redirect('/client/profile?error=' + encodeURIComponent(err.message));
+    }
+};
