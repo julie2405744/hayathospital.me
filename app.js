@@ -61,8 +61,14 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+mongoose.connect(process.env.MONGO_URL)
+  .then(() => {
+    console.log('MongoDB connected');
+    
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Server is running on port ${PORT}`);
+    });
+  })
+  .catch(err => console.log(err));
 
 module.exports = app;
