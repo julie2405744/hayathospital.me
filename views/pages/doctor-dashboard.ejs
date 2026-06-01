@@ -99,7 +99,11 @@
                                                         const stored = parts[1] || parts[0];
                                                     %>
                                                         <li>
-                                                            <a href="/uploads/<%= stored %>" target="_blank" style="color: var(--blue); text-decoration: underline; word-break: break-all;"><%= orig %></a>
+                                                            <% if (stored.startsWith('http')) { %>
+                                                                <a href="<%= stored %>" target="_blank" style="color: var(--blue); text-decoration: underline; word-break: break-all;"><%= orig %></a>
+                                                            <% } else { %>
+                                                                <a href="/uploads/<%= stored %>" target="_blank" style="color: var(--blue); text-decoration: underline; word-break: break-all;"><%= orig %></a>
+                                                            <% } %>
                                                         </li>
                                                     <% } else { %>
                                                         <li><%= item %></li>

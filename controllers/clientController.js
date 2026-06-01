@@ -105,6 +105,7 @@ exports.uploadReport = async (req, res) => {
     try {
         if (!req.file) return res.redirect('/client/profile?error=No+file+was+uploaded.');
 
+        // ── Backend Validation ──
         const allowedMime = ['application/pdf', 'image/png', 'image/jpeg', 'text/plain',
                              'application/msword',
                              'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
@@ -119,11 +120,13 @@ exports.uploadReport = async (req, res) => {
             return res.redirect('/client/profile?error=File+size+must+not+exceed+5+MB.');
 
         const userId       = req.session.user.id;
-        const filename     = req.file.filename;
+        // In production (Cloudinary), req.file.path contains the full secure URL.
+        // In development (Local), req.file.filename contains the local file name.
+        const fileRef = process.env.ENVIRONMENT === 'production' ? req.file.path : req.file.filename;
         const originalName = req.file.originalname;
 
         await User.findByIdAndUpdate(userId, {
-            $push: { medicalHistory: `${originalName}|${filename}` }
+            $push: { medicalHistory: `${originalName}|${fileRef}` }
         });
 
         res.redirect('/client/profile?success=uploaded');
