@@ -122,7 +122,8 @@ exports.uploadReport = async (req, res) => {
         const userId       = req.session.user.id;
         // In production (Cloudinary), req.file.path contains the full secure URL.
         // In development (Local), req.file.filename contains the local file name.
-        const fileRef = process.env.ENVIRONMENT === 'production' ? req.file.path : req.file.filename;
+        const isProd = process.env.NODE_ENV === 'production' || process.env.ENVIRONMENT === 'production';
+        const fileRef = isProd ? req.file.path : req.file.filename;
         const originalName = req.file.originalname;
 
         await User.findByIdAndUpdate(userId, {

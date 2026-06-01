@@ -9,6 +9,7 @@ dotenv.config();
 
 const app = express();
 
+const isProd = process.env.NODE_ENV === 'production' || process.env.ENVIRONMENT === 'production';
 
 const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URL || 'mongodb://localhost:27017/hayat';
 
@@ -18,12 +19,13 @@ app.set('views', path.join(__dirname, 'views'));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.set('trust proxy', 1);
 app.use(session({
     secret: process.env.SESSION_SECRET || 'hayat-dev-secret',
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: process.env.NODE_ENV === 'production',
+        secure: isProd,
         maxAge: 24 * 60 * 60 * 1000
     }
 }));
@@ -55,7 +57,7 @@ app.use((err, req, res, next) => {
     const statusCode = err.status || 500;
     res.status(statusCode).render('pages/error', {
         statusCode,
-        errorDetail: process.env.NODE_ENV === 'production' ? null : err.message
+        errorDetail: isProd ? null : err.message
     });
 });
 

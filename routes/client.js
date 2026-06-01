@@ -26,7 +26,7 @@ const cloudStorage = new CloudinaryStorage({
     },
 });
 
-const isProduction = process.env.ENVIRONMENT === 'production';
+const isProduction = process.env.NODE_ENV === 'production' || process.env.ENVIRONMENT === 'production';
 const storage = isProduction ? cloudStorage : localStorage;
 
 const upload = multer({ storage: storage });
