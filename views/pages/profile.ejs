@@ -88,7 +88,11 @@
                         <div class="report-item">
                             <span><%= orig %></span>
                             <% if (stored) { %>
-                            <a href="/uploads/<%= stored %>" target="_blank" class="btn-small">View Report</a>
+                                <% if (stored.startsWith('http')) { %>
+                                    <a href="<%= stored %>" target="_blank" class="btn-small">View Report</a>
+                                <% } else { %>
+                                    <a href="/uploads/<%= stored %>" target="_blank" class="btn-small">View Report</a>
+                                <% } %>
                             <% } else { %>
                             <span class="btn-small" style="background:none; color:var(--muted); padding:0;">Record</span>
                             <% } %>
