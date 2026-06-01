@@ -10,10 +10,7 @@ dotenv.config();
 const app = express();
 
 
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/hayat')
-    .then(() => console.log('MongoDB connected'))
-    .catch(err => console.error('MongoDB error:', err.message));
-
+const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URL || 'mongodb://localhost:27017/hayat';
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -22,10 +19,13 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(session({
-    secret:  process.env.SESSION_SECRET || 'hayat-dev-secret',
-    resave:  false,
+    secret: process.env.SESSION_SECRET || 'hayat-dev-secret',
+    resave: false,
     saveUninitialized: false,
-    cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 }
+    cookie: {
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 24 * 60 * 60 * 1000
+    }
 }));
 
 
@@ -61,14 +61,17 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 
-mongoose.connect(process.env.MONGO_URL)
+mongoose.connect(MONGODB_URI)
   .then(() => {
     console.log('MongoDB connected');
-    
+
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`Server is running on port ${PORT}`);
     });
   })
-  .catch(err => console.log(err));
+  .catch(err => {
+    console.error('MongoDB connection error:', err);
+    process.exit(1);
+  });
 
 module.exports = app;
