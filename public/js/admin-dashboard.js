@@ -1,3 +1,8 @@
+// Parse server data
+var serverDataEl = document.getElementById('server-data');
+var doctors = serverDataEl ? JSON.parse(serverDataEl.getAttribute('data-doctors') || '[]') : [];
+var bookings = serverDataEl ? JSON.parse(serverDataEl.getAttribute('data-bookings') || '[]') : [];
+
 function formatAvailability(dateStr, startStr, endStr) {
     if (!dateStr || !startStr || !endStr) return '';
 
@@ -142,7 +147,7 @@ function renderDashboardTable() {
     tbody.innerHTML = '';
 
     if (doctors.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--subtle); padding:20px;">No doctors added yet.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" class="admin-dash-empty">No doctors added yet.</td></tr>';
         return;
     }
 
@@ -157,7 +162,7 @@ function renderDashboardTable() {
             + '<td>' + doctorBookings.length + ' / ' + doctor.maxCapacity + '</td>'
             + '<td>' + escHtml(patientNames) + '</td>'
             + '<td>' + escHtml(doctor.sector) + '</td>'
-            + '<td><button class="btn-toggle-form" style="background:#dc2626;color:white;border:none;padding:5px 10px;border-radius:6px;cursor:pointer;" onclick="deleteDoctor(\'' + escHtml(doctor.name) + '\')">🗑️ Delete</button></td>';
+            + '<td><button class="btn-toggle-form btn-delete" onclick="deleteDoctor(\'' + escHtml(doctor.name) + '\')">🗑️ Delete</button></td>';
         tbody.appendChild(tr);
     }
 }

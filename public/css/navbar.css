@@ -141,3 +141,8 @@
     color: var(--muted);
     font-weight: 500;
 }
+
+.nav-logo-icon {
+    color: var(--teal);
+    font-size: 1.1em;
+}

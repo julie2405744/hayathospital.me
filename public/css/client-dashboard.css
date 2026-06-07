@@ -133,3 +133,5 @@
     .doctor-card { flex-direction: column; align-items: flex-start; }
     .btn-book    { width: 100%; text-align: center; }
 }
+
+.client-dash-mt-14 { margin-top: 14px; }

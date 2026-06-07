@@ -1,17 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <%- include('../partials/head', { title: 'My Profile', extraCss: ['/css/base.css'] }) %>
-    <style>
-        .profile-container { max-width: 900px; margin: 40px auto; padding: 20px; }
-        .card { background: white; padding: 25px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.03); margin-bottom: 24px; }
-        .report-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border); }
-        .appt-item { display: flex; justify-content: space-between; align-items: center; padding: 18px; border-bottom: 1px solid var(--border); }
-        .btn-cancel-red { background: var(--red); color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 0.82rem; transition: opacity 0.2s; }
-        .btn-cancel-red:hover { opacity: 0.85; }
-        .upload-form { margin-top: 20px; display: flex; gap: 10px; align-items: center; }
-        .upload-input { flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; }
-    </style>
+    <%- include('../partials/head', { title: 'My Profile', extraCss: ['/css/base.css', '/css/profile.css'] }) %>
+
 </head>
 <body>
     <%- include('../partials/navbar', { role: 'client' }) %>
@@ -23,21 +14,21 @@
             <p><strong>Email:</strong> <%= user.email %></p>
 
             <!-- Phone — editable inline -->
-            <form action="/client/profile/update-phone" method="POST" style="margin-top:14px;" onsubmit="return validatePhone()">
-                <label style="font-size:0.88rem; font-weight:600; color:var(--muted);">📱 Phone Number</label>
-                <div style="display:flex; gap:10px; margin-top:6px; align-items:center;">
+            <form action="/client/profile/update-phone" method="POST" class="profile-phone-form" onsubmit="return validatePhone()">
+                <label class="profile-phone-label">📱 Phone Number</label>
+                <div class="profile-phone-group">
                     <input type="text" name="phone" id="phone-input"
                            value="<%= user.phone || '' %>"
                            placeholder="e.g. +1234567890"
-                           style="flex:1; padding:9px 12px; border:1px solid var(--border); border-radius:10px; font-family:inherit; font-size:0.92rem;">
+                           class="profile-phone-input">
                     <button type="submit" class="btn-add">Save</button>
                 </div>
-                <p id="phone-error" style="font-size:0.82rem; color:var(--red); margin-top:6px; display:none;"></p>
+                <p id="phone-error" class="profile-error-msg"></p>
                 <% if (!user.phone) { %>
-                    <p style="font-size:0.82rem; color:var(--muted); margin-top:6px;">⚠️ No phone number saved on your profile.</p>
+                    <p class="profile-warn-msg">⚠️ No phone number saved on your profile.</p>
                 <% } %>
                 <% if (locals.phoneSuccess) { %>
-                    <p style="font-size:0.82rem; color:var(--green); margin-top:6px;">✅ Phone number updated.</p>
+                    <p class="profile-success-msg">✅ Phone number updated.</p>
                 <% } %>
             </form>
         </div>
@@ -64,7 +55,7 @@
                                 %>
                                     <button class="btn-cancel-red" onclick="cancelAppointment('<%= appt._id %>')">Cancel</button>
                                 <% } else { %>
-                                    <span style="color:var(--red); font-weight: 600; font-size: 0.85rem;">🔒 Locked</span>
+                                    <span class="profile-locked-badge">🔒 Locked</span>
                                 <% } %>
                             </div>
                         </div>
@@ -94,22 +85,22 @@
                                     <a href="/uploads/<%= stored %>" target="_blank" class="btn-small">View Report</a>
                                 <% } %>
                             <% } else { %>
-                            <span class="btn-small" style="background:none; color:var(--muted); padding:0;">Record</span>
+                            <span class="btn-small profile-record-btn">Record</span>
                             <% } %>
                         </div>
                     <% }); %>
                 <% } else { %>
-                    <p style="color: var(--muted);">No history or reports uploaded yet.</p>
+                    <p class="profile-empty-msg">No history or reports uploaded yet.</p>
                 <% } %>
             </div>
-            <hr style="border: 0; border-top: 1px solid var(--border); margin: 20px 0;">
+            <hr class="profile-divider">
             <h5>📤 Upload New Record</h5>
             <form action="/client/profile/upload" method="POST" enctype="multipart/form-data" class="upload-form" onsubmit="return validateUpload()">
                 <input type="file" name="reportFile" id="report-file" required class="upload-input"
                        accept=".pdf,.png,.jpg,.jpeg,.txt,.doc,.docx">
                 <button type="submit" class="btn-add">Upload</button>
             </form>
-            <p id="upload-error" style="font-size:0.82rem; color:var(--red); margin-top:6px; display:none;"></p>
+            <p id="upload-error" class="profile-error-msg"></p>
         </div>
     </div>
 

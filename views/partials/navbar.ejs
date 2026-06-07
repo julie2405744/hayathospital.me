@@ -3,7 +3,7 @@
 */ -%>
 <nav class="navbar">
     <div class="nav-inner">
-        <a href="/" class="logo"><span style="color:var(--teal); font-size:1.1em;">✚</span> Hayat Hospital<% if (typeof role !== 'undefined' && role === 'admin') { %> <span class="admin-badge">Admin</span><% } %></a>
+        <a href="/" class="logo"><span class="nav-logo-icon">✚</span> Hayat Hospital<% if (typeof role !== 'undefined' && role === 'admin') { %> <span class="admin-badge">Admin</span><% } %></a>
         <ul class="nav-links">
 
             <% if (typeof role === 'undefined' || role === 'landing') { %>

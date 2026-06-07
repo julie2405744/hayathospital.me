@@ -96,3 +96,18 @@
     font-size: 0.8rem;
     color: var(--muted);
 }
+
+.admin-dash-empty {
+    text-align: center;
+    color: var(--subtle);
+    padding: 20px;
+}
+
+.btn-delete {
+    background: #dc2626;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+}

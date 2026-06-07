@@ -103,7 +103,7 @@
                     </thead>
                     <tbody id="dashboard-tbody">
                         <tr>
-                            <td colspan="4" style="text-align:center; color:var(--subtle); padding:20px;">No doctors added yet.</td>
+                            <td colspan="4" class="admin-dash-empty">No doctors added yet.</td>
                         </tr>
                     </tbody>
                 </table>
@@ -112,25 +112,10 @@
         </div>
     </div>
 
-    <!-- Inject server data BEFORE the page script so variables are ready -->
-    <script>
-    var doctors = <%- JSON.stringify(doctors.map(function(d) {
-        return {
-            name:                d.name,
-            sector:              d.sector,
-            timeSlot:            d.timeSlot,
-            maxCapacity:         d.maxCapacity,
-            avgConsultationTime: d.avgConsultationTime
-        };
-    })) %>;
-
-    var bookings = <%- JSON.stringify(bookings.map(function(b) {
-        return {
-            doctorName:  b.doctorName,
-            patientName: b.patientName
-        };
-    })) %>;
-    </script>
+    <div id="server-data" style="display:none;"
+         data-doctors="<%= JSON.stringify(doctors.map(function(d) { return { name: d.name, sector: d.sector, timeSlot: d.timeSlot, maxCapacity: d.maxCapacity, avgConsultationTime: d.avgConsultationTime }; })) %>"
+         data-bookings="<%= JSON.stringify(bookings.map(function(b) { return { doctorName: b.doctorName, patientName: b.patientName }; })) %>">
+    </div>
 
     <%- include('../partials/scripts', { extraScripts: ['/js/admin-dashboard.js'] }) %>
 
