@@ -45,6 +45,7 @@ function addDoctor(event) {
     event.preventDefault();
 
     var name     = document.getElementById('doctor-name').value.trim();
+    var password = document.getElementById('doctor-password').value.trim();
     var sector   = document.getElementById('doctor-sector').value;
     var dateVal  = document.getElementById('doctor-date').value;
     var startVal = document.getElementById('doctor-time-start').value;
@@ -58,7 +59,7 @@ function addDoctor(event) {
     fetch('/admin/doctor', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ name, sector, timeSlot, avgConsultationTime: avgTime })
+        body:    JSON.stringify({ name, password, sector, timeSlot, avgConsultationTime: avgTime })
     })
     .then(function(r) { return r.json(); })
     .then(function(data) {
@@ -82,6 +83,7 @@ function openEditForm(doctorName) {
     document.getElementById('edit-doctor-original-name').value = doctor.name;
     document.getElementById('edit-doctor-name').value          = doctor.name;
     document.getElementById('edit-doctor-sector').value        = doctor.sector;
+    document.getElementById('edit-doctor-password').value      = '';
     document.getElementById('edit-doctor-avg-time').value      = doctor.avgConsultationTime;
     document.getElementById('edit-form-panel').classList.remove('hidden');
 }
@@ -95,6 +97,7 @@ function saveEditDoctor(event) {
 
     var originalName = document.getElementById('edit-doctor-original-name').value;
     var name     = document.getElementById('edit-doctor-name').value.trim();
+    var password = document.getElementById('edit-doctor-password').value.trim();
     var sector   = document.getElementById('edit-doctor-sector').value;
     var dateVal  = document.getElementById('edit-doctor-date').value;
     var startVal = document.getElementById('edit-doctor-time-start').value;
@@ -108,7 +111,7 @@ function saveEditDoctor(event) {
     fetch('/admin/doctor/edit', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ originalName, name, sector, timeSlot, avgConsultationTime: avgTime })
+        body:    JSON.stringify({ originalName, name, password, sector, timeSlot, avgConsultationTime: avgTime })
     })
     .then(function(r) { return r.json(); })
     .then(function(data) {
