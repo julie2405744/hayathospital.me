@@ -3,6 +3,7 @@
 const Doctor  = require('../models/Doctor');
 const Booking = require('../models/Booking');
 const User    = require('../models/User');
+const bcrypt  = require('bcryptjs');
 const {
     sendSlotsUpdatedEmail,
     sendCapacityReducedEmail,
@@ -63,7 +64,9 @@ exports.postLogin = async (req, res) => {
 
     const doctor = await Doctor.findOne({ name: doctorName });
     if (!doctor)              return res.redirect('/doctor/login?error=notfound');
-    if (password !== 'doctor123') return res.redirect('/doctor/login?error=invalid');
+    
+    const match = await bcrypt.compare(password, doctor.password);
+    if (!match) return res.redirect('/doctor/login?error=invalid');
 
     req.session.doctorName = doctorName;
     res.redirect('/doctor/dashboard');

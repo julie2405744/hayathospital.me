@@ -1,5 +1,6 @@
 const Doctor  = require('../models/Doctor');
 const Booking = require('../models/Booking');
+const bcrypt  = require('bcryptjs');
 
 function parseTimeMins(timeStr) {
     const match = timeStr.trim().match(/(\d+):(\d+)\s*(AM|PM)/i);
@@ -61,10 +62,11 @@ function validateDoctorInput(name, sector, timeSlot, avg) {
 
 exports.addDoctor = async (req, res) => {
     try {
-        const { name, sector, timeSlot, avgConsultationTime } = req.body;
+        const { name, password, sector, timeSlot, avgConsultationTime } = req.body;
         const avg = parseInt(avgConsultationTime, 10);
 
         // ── Backend Validation ──
+        if (!password || password.trim().length < 4) return res.json({ success: false, error: 'Password must be at least 4 characters.' });
         const err = validateDoctorInput(name, sector, timeSlot, avg);
         if (err) return res.json({ success: false, error: err });
 
@@ -72,8 +74,9 @@ exports.addDoctor = async (req, res) => {
         if (exists) return res.json({ success: false, error: 'A doctor with this name already exists.' });
 
         const maxCapacity = calculateCapacity(timeSlot, avg);
+        const hashedPassword = await bcrypt.hash(password.trim(), 10);
 
-        await Doctor.create({ name: String(name).trim(), sector, timeSlot, avgConsultationTime: avg, maxCapacity });
+        await Doctor.create({ name: String(name).trim(), password: hashedPassword, sector, timeSlot, avgConsultationTime: avg, maxCapacity });
         res.json({ success: true });
     } catch (err) {
         res.json({ success: false, error: err.message });
@@ -82,7 +85,7 @@ exports.addDoctor = async (req, res) => {
 
 exports.editDoctor = async (req, res) => {
     try {
-        const { originalName, name, sector, timeSlot, avgConsultationTime } = req.body;
+        const { originalName, name, password, sector, timeSlot, avgConsultationTime } = req.body;
         const avg = parseInt(avgConsultationTime, 10);
 
         // ── Backend Validation ──
@@ -91,10 +94,18 @@ exports.editDoctor = async (req, res) => {
         if (err) return res.json({ success: false, error: err });
 
         const maxCapacity = calculateCapacity(timeSlot, avg);
+        
+        const updateData = { name: String(name).trim(), sector, timeSlot, avgConsultationTime: avg, maxCapacity };
+        
+        if (password && password.trim().length >= 4) {
+            updateData.password = await bcrypt.hash(password.trim(), 10);
+        } else if (password && password.trim().length > 0) {
+            return res.json({ success: false, error: 'Password must be at least 4 characters.' });
+        }
 
         const updated = await Doctor.findOneAndUpdate(
             { name: originalName },
-            { name: String(name).trim(), sector, timeSlot, avgConsultationTime: avg, maxCapacity },
+            updateData,
             { new: true }
         );
         if (!updated) return res.json({ success: false, error: 'Doctor not found.' });

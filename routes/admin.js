@@ -15,7 +15,7 @@ router.post('/login', (req, res) => {
     if (username === adminUser && password === adminPass) {
         req.session.isAdmin = true;
         return res.redirect('/admin/dashboard');
-    }
+    } 
     res.render('pages/admin-login', { error: 'Invalid username or password.' });
 });
 
