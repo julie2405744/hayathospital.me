@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <%- include('../partials/head', { title: 'Doctor Dashboard', extraCss: ['/css/admin-dashboard.css'] }) %>
+    <%- include('../partials/head', { title: 'Doctor Dashboard', extraCss: ['/css/admin-dashboard.css', '/css/doctor-dashboard.css'] }) %>
 </head>
 <body>
     <%- include('../partials/navbar', { role: 'doctor' }) %>
@@ -21,10 +21,10 @@
                 </div>
 
                 <p><strong>Current Slot:</strong> <%= doctor.timeSlot || '—' %></p>
-                <p style="margin-top:4px;"><strong>Max Capacity:</strong> <%= doctor.maxCapacity %></p>
+                <p class="doc-dash-mt-4"><strong>Max Capacity:</strong> <%= doctor.maxCapacity %></p>
 
-                <hr style="border:0; border-top:1px solid var(--border); margin:18px 0;">
-                <h4 style="margin-bottom:12px;">Update Time Slot</h4>
+                <hr class="doc-dash-divider">
+                <h4 class="doc-dash-mb-12">Update Time Slot</h4>
 
                 <div class="input-group availability-inputs">
                     <div class="time-range">
@@ -34,24 +34,12 @@
                     </div>
                 </div>
 
-                <div style="display:flex; gap:10px; margin-top:4px;">
-                    <button class="btn-form" onclick="updateSlots()" style="flex:1;">💾 Update Slot</button>
-                    <button onclick="clearSlot()" style="
-                        padding: 12px 20px;
-                        background: rgba(232,64,64,0.08);
-                        color: var(--red);
-                        border: 1px solid rgba(232,64,64,0.35);
-                        border-radius: 12px;
-                        font-size: 0.92rem;
-                        font-weight: 600;
-                        cursor: pointer;
-                        font-family: inherit;
-                        white-space: nowrap;
-                        transition: background 0.2s;
-                    ">🗑 Cancel All</button>
+                <div class="doc-dash-action-group">
+                    <button class="btn-form doc-dash-btn-flex" onclick="updateSlots()">💾 Update Slot</button>
+                    <button class="btn-cancel-all" onclick="clearSlot()">🗑 Cancel All</button>
                 </div>
 
-                <p style="margin-top:10px; font-size:0.83rem; color:var(--subtle);">
+                <p class="doc-dash-hint">
                     Updating recalculates capacity — patients beyond the new limit are removed and notified via Email.
                     <strong>"Cancel All"</strong> removes all bookings and clears your slot.
                 </p>
@@ -75,7 +63,7 @@
                     <tbody>
                         <% if (bookings.length === 0) { %>
                             <tr>
-                                <td colspan="4" style="text-align:center; color:var(--subtle); padding:24px;">
+                                <td colspan="4" class="doc-dash-empty-cell">
                                     No patients in queue.
                                 </td>
                             </tr>
@@ -89,9 +77,9 @@
                                         <% let hasHistory = (b.medicalHistory && b.medicalHistory.length > 0); %>
                                         
                                         <% if (!hasHistory) { %>
-                                            <span style="color:var(--subtle);">No history</span>
+                                            <span class="doc-dash-no-history">No history</span>
                                         <% } else { %>
-                                            <ul style="padding-left:16px; margin:0; font-size:0.85em; color:var(--muted); list-style-type: disc;">
+                                            <ul class="doc-dash-history-list">
                                                 <% b.medicalHistory.forEach(function(item) { %>
                                                     <% if (item.includes('|')) { 
                                                         const parts = item.split('|');
@@ -100,9 +88,9 @@
                                                     %>
                                                         <li>
                                                             <% if (stored.startsWith('http')) { %>
-                                                                <a href="<%= stored %>" target="_blank" style="color: var(--blue); text-decoration: underline; word-break: break-all;"><%= orig %></a>
+                                                                <a href="<%= stored %>" target="_blank" class="doc-dash-history-link"><%= orig %></a>
                                                             <% } else { %>
-                                                                <a href="/uploads/<%= stored %>" target="_blank" style="color: var(--blue); text-decoration: underline; word-break: break-all;"><%= orig %></a>
+                                                                <a href="/uploads/<%= stored %>" target="_blank" class="doc-dash-history-link"><%= orig %></a>
                                                             <% } %>
                                                         </li>
                                                     <% } else { %>
@@ -122,73 +110,6 @@
         </div>
     </div>
 
-    <script>
-        // Format start/end time inputs into the timeSlot string the server expects.
-        // Output: "1:00 PM - 5:00 PM"  (no date)
-        function formatTimeSlot(startStr, endStr) {
-            function to12h(t) {
-                var parts = t.split(':');
-                var h     = parseInt(parts[0], 10);
-                var m     = parts[1];
-                var ampm  = h >= 12 ? 'PM' : 'AM';
-                h = h % 12 || 12;
-                return h + ':' + m + ' ' + ampm;
-            }
-            return to12h(startStr) + ' - ' + to12h(endStr);
-        }
-
-        async function updateSlots() {
-            var startVal = document.getElementById('slot-start').value;
-            var endVal   = document.getElementById('slot-end').value;
-
-            if (!startVal || !endVal) {
-                alert('Please fill in both start time and end time.');
-                return;
-            }
-            if (startVal >= endVal) {
-                alert('End time must be later than start time.');
-                return;
-            }
-
-            var timeSlot = formatTimeSlot(startVal, endVal);
-
-            try {
-                var res  = await fetch('/doctor/update-slots', {
-                    method:  'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body:    JSON.stringify({ timeSlot })
-                });
-                var data = await res.json();
-                if (data.success) {
-                    alert('Slot updated. New capacity: ' + data.newCapacity + '. All patients have been notified via Email.');
-                    window.location.reload();
-                } else {
-                    alert('Error: ' + data.error);
-                }
-            } catch (err) {
-                alert('Request failed: ' + err.message);
-            }
-        }
-
-        async function clearSlot() {
-            if (!confirm('This will cancel ALL appointments and remove your time slot.\nAll patients will be notified via Email.\n\nContinue?')) return;
-
-            try {
-                var res  = await fetch('/doctor/clear-slot', {
-                    method:  'POST',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-                var data = await res.json();
-                if (data.success) {
-                    alert('All appointments cancelled. Patients have been notified via Email.');
-                    window.location.reload();
-                } else {
-                    alert('Error: ' + data.error);
-                }
-            } catch (err) {
-                alert('Request failed: ' + err.message);
-            }
-        }
-    </script>
+    <%- include('../partials/scripts', { extraScripts: ['/js/doctor-dashboard.js'] }) %>
 </body>
 </html>

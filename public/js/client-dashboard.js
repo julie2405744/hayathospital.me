@@ -1,3 +1,9 @@
+// Parse server data
+var serverDataEl = document.getElementById('server-data');
+var doctors = serverDataEl ? JSON.parse(serverDataEl.getAttribute('data-doctors') || '[]') : [];
+var bookings = serverDataEl ? JSON.parse(serverDataEl.getAttribute('data-bookings') || '[]') : [];
+var myAppointments = serverDataEl ? JSON.parse(serverDataEl.getAttribute('data-my-appointments') || '[]') : [];
+var loggedInName = serverDataEl ? (serverDataEl.getAttribute('data-logged-in-name') || '') : '';
 
 function filterDoctors() {
     var sector   = document.getElementById('sector-filter').value;

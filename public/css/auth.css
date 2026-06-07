@@ -54,3 +54,13 @@
 .btn-back:hover {
     color: var(--blue);
 }
+
+.auth-back-box {
+    text-align: center;
+    margin-top: 16px;
+}
+.auth-back-link {
+    color: var(--subtle);
+    font-size: 0.88rem;
+    text-decoration: none;
+}

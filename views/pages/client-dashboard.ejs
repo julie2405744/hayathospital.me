@@ -38,7 +38,7 @@
             <h4 id="modal-doctor-name">Book Appointment</h4>
 
             <form id="booking-form" onsubmit="confirmBooking(event)">
-                <div class="input-group" style="margin-top:14px;">
+                <div class="input-group client-dash-mt-14">
                     <input type="text" id="patient-name" placeholder="Patient Name" required>
                 </div>
 
@@ -59,30 +59,12 @@
     </div>
 
     <!-- Inject server data BEFORE the page script -->
-    <script>
-    var doctors = <%- JSON.stringify(doctors.map(function(d) {
-        return {
-            name:        d.name,
-            sector:      d.sector,
-            timeSlot:    d.timeSlot,
-            maxCapacity: d.maxCapacity
-        };
-    })) %>;
-
-    var bookings = <%- JSON.stringify(bookings.map(function(b) {
-        return {
-            doctorName: b.doctorName,
-            patientId:  b.patientId
-        };
-    })) %>;
-
-    // Used by openBookingModal to block duplicate doctor bookings
-    var myAppointments = <%- JSON.stringify(myBookings.map(function(b) {
-        return { doctorName: b.doctorName };
-    })) %>;
-
-    var loggedInName = "<%= user ? user.firstName + ' ' + user.lastName : '' %>";
-    </script>
+    <div id="server-data" style="display:none;"
+         data-doctors="<%= JSON.stringify(doctors.map(function(d) { return { name: d.name, sector: d.sector, timeSlot: d.timeSlot, maxCapacity: d.maxCapacity }; })) %>"
+         data-bookings="<%= JSON.stringify(bookings.map(function(b) { return { doctorName: b.doctorName, patientId: b.patientId }; })) %>"
+         data-my-appointments="<%= JSON.stringify(myBookings.map(function(b) { return { doctorName: b.doctorName }; })) %>"
+         data-logged-in-name="<%= user ? user.firstName + ' ' + user.lastName : '' %>">
+    </div>
 
     <%- include('../partials/scripts', { extraScripts: ['/js/client-dashboard.js'] }) %>
 
