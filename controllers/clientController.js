@@ -166,11 +166,27 @@ exports.bookAppointment = async (req, res) => {
         if (alreadyBooked)
             return res.json({ success: false, error: 'You already have an appointment with this doctor.' });
 
-        const appointmentTime = getAppointmentTime(doctor.timeSlot, doctor.avgConsultationTime, currentCount);
+        const lastBooking = await Booking.findOne({ doctorName }).sort({ appointmentTime: -1 });
+        let appointmentTime;
+
+        if (lastBooking && lastBooking.appointmentTime > new Date()) {
+            // Append to the end of the line by adding avgConsultationTime to the latest booking
+            appointmentTime = new Date(lastBooking.appointmentTime.getTime() + doctor.avgConsultationTime * 60000);
+        } else {
+            // First booking of the day or all previous bookings are in the past
+            appointmentTime = getAppointmentTime(doctor.timeSlot, doctor.avgConsultationTime, 0);
+        }
 
         await Booking.create({ doctorName, patientName: trimmedName, patientId: userId, appointmentType, appointmentTime });
         res.json({ success: true });
     } catch (err) {
+        // Catch MongoDB Duplicate Key Error (Race condition prevented by unique index)
+        if (err.code === 11000) {
+            return res.json({ 
+                success: false, 
+                error: 'This time slot was just taken by someone else. Please try booking again.' 
+            });
+        }
         res.json({ success: false, error: err.message });
     }
 };

@@ -8,4 +8,7 @@ const bookingSchema = new mongoose.Schema({
     appointmentTime: { type: Date }
 }, { timestamps: true });
 
+// Enforce unique appointment times per doctor to prevent race conditions
+bookingSchema.index({ doctorName: 1, appointmentTime: 1 }, { unique: true });
+
 module.exports = mongoose.model('Booking', bookingSchema);
